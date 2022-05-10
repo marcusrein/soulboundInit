@@ -33,6 +33,35 @@ const generateScaffold = async (
   return scaffold.generate()
 }
 
+const generateSoulboundScaffold = async (
+  {
+    protocolInstance,
+    abi,
+    contract,
+    network,
+    subgraphName,
+    indexEvents,
+    contractName = 'Contract',
+    node,
+  },
+  spinner,
+) => {
+  step(spinner, 'Generate subgraph')
+
+  const scaffold = new Scaffold({
+    protocol: protocolInstance,
+    abi,
+    indexEvents,
+    contract,
+    network,
+    contractName,
+    subgraphName,
+    node,
+  })
+
+  return scaffold.generateBase()
+}
+
 const writeScaffoldDirectory = async (scaffold, directory, spinner) => {
   // Create directory itself
   await fs.mkdirs(directory)
@@ -62,5 +91,6 @@ const writeScaffold = async (scaffold, directory, spinner) => {
 module.exports = {
   ...module.exports,
   generateScaffold,
+  generateSoulboundScaffold,
   writeScaffold,
 }

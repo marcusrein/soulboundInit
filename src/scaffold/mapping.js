@@ -41,9 +41,31 @@ const generateEventIndexingHandlers = (events, contractName) =>
     .join('\n')}
 `
 
+const generateSoulboundEventHandlers = (events, contractName) =>
+  `
+  import { ${events.map(
+    event => `${event._alias} as ${event._alias}Event`,
+  )}} from '../generated/${contractName}/${contractName}'
+  import { BaseMetric } from '../generated/schema'
+
+  ${events
+    .map(
+      event =>
+        `
+  export function handle${event._alias}(event: ${event._alias}Event): void {
+    let entity = new BaseMetric(event.transaction.hash.toHex() + '-' + event.logIndex.toString())
+    ${generateEventFieldAssignments(event).join('\n')}
+    entity.save()
+  }
+    `,
+    )
+    .join('\n')}
+`
+
 module.exports = {
   generateFieldAssignment,
   generateFieldAssignments,
   generateEventFieldAssignments,
   generateEventIndexingHandlers,
+  generateSoulboundEventHandlers,
 }

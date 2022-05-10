@@ -8,6 +8,7 @@ const TendermintSubgraph = require('./tendermint/subgraph')
 const EthereumContract = require('./ethereum/contract')
 const NearContract = require('./near/contract')
 const EthereumManifestScaffold = require('./ethereum/scaffold/manifest')
+const SoulboundManifest = require("./ethereum/scaffold/soulboundManifest")
 const NearManifestScaffold = require('./near/scaffold/manifest')
 const EthereumMappingScaffold = require('./ethereum/scaffold/mapping')
 const NearMappingScaffold = require('./near/scaffold/mapping')
@@ -208,6 +209,10 @@ module.exports = class Protocol {
       case 'tendermint':
         return null
     }
+  }
+
+  getSoulboundManifest(){
+    return SoulboundManifest
   }
 
   getMappingScaffold() {

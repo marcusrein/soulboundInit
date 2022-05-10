@@ -52,6 +52,91 @@ const generateExampleEntityType = (protocol, events) => {
     }
 }
 
+const generateBaseMetric = (protocol, events) => {
+      return `
+              type BaseMetric @entity {
+                id: Bytes!
+                type: EventType!
+                transactionMetadata: TransactionMetadata!
+                params: MetricParam!
+              }
+
+              type TransactionMetadata @entity {
+                id: Bytes! # The TxHash toHex()
+                txValue: BigInt!
+                timestamp: BigInt!
+                blockNumber: BigInt!
+                txTo: Bytes!
+                txFrom: Bytes!
+                txGas: Bytes!
+              }
+
+              type InMemoryIncrementStore @entity {
+                id: Bytes! # Always 1 =  store this const in the mapping and always just retrieve it - then incrementValue++ when new even
+                incrementValue: BigInt!
+              }
+
+              type EventType @entity {
+                id: Bytes! #ToHex of EventName
+                name: String! #The Event Name
+              }
+
+              type MetricParam @entity {
+                id: Bytes!
+
+                paramName1: String
+                paramValue1: String
+                paramType1: String
+
+                paramName2: String
+                paramValue2: String
+                paramType2: String
+
+                paramName3: String
+                paramValue3: String
+                paramType3: String
+
+                paramName4: String
+                paramValue4: String
+                paramType4: String
+
+                paramName5: String
+                paramValue5: String
+                paramType5: String
+
+                paramName6: String
+                paramValue6: String
+                paramType6: String
+              }
+
+
+
+              type BadgeType @entity {
+                id: Bytes!
+                name: String! #The Badge
+                ipfs: String! #The
+                soul: BigInt!
+                linkingParam: String! # This is what ties a baseMetric to a user
+                baseMetric: [BadgeMetricLookup!] #The base
+              }
+
+
+              type BadgeMetricLookup @entity {
+                id: Bytes! #Combination of BaseMetric ID + BaseID
+                badge: BadgeType! #Combination of
+                baseMetric: BaseMetric!
+              }
+
+              type UserBadge @entity {
+                id: Bytes! #BadgeTypeID + UserAddress
+                badge: BadgeType! #Combination of
+                account: Bytes!
+                vanityValue: Bytes! # HOW MUCH THEY HAVE CURATED IN TOTALITY
+                vanityName: Bytes! #
+              }
+            `
+}
+
 module.exports = {
   abiEvents,
   protocolTypeToGraphQL,
@@ -59,4 +144,5 @@ module.exports = {
   generateEventFields,
   generateEventType,
   generateExampleEntityType,
+  generateBaseMetric,
 }

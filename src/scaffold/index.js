@@ -12,6 +12,7 @@ const {
   abiEvents,
   generateEventType,
   generateExampleEntityType,
+  generateBaseMetric
 } = require('./schema')
 const { generateEventIndexingHandlers } = require('./mapping')
 const { getSubgraphBasename } = require('../command-helpers/subgraph')
@@ -75,6 +76,24 @@ dataSources:
     )
   }
 
+  generateSoulboundManifest() {
+    const protocolManifest = this.protocol.getSoulboundManifest()
+
+    return prettier.format(`
+specVersion: 0.0.1
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ${this.protocol.name}
+    name: ${this.contractName}
+    network: ${this.network}
+    source: ${protocolManifest.source(this)}
+    mapping: ${protocolManifest.mapping(this)}
+`,
+      { parser: 'yaml' },
+    )
+  }
+
   generateSchema() {
     const hasEvents = this.protocol.hasEvents()
     const events = hasEvents
@@ -88,6 +107,20 @@ dataSources:
           )
             .join('\n\n')
         : generateExampleEntityType(this.protocol, events),
+      {
+        parser: 'graphql',
+      },
+    )
+  }
+
+  generateSoulboundSchema() {
+    const hasEvents = this.protocol.hasEvents()
+    const events = hasEvents
+      ? abiEvents(this.abi).toJS()
+      : []
+
+    return prettier.format(
+      generateBaseMetric(this.protocol, events),
       {
         parser: 'graphql',
       },
@@ -126,6 +159,28 @@ dataSources:
     )
   }
 
+  generateSoulboundMapping() {
+    const hasEvents = this.protocol.hasEvents()
+    const events = hasEvents
+      ? abiEvents(this.abi).toJS()
+      : []
+
+    const protocolMapping = this.protocol.getMappingScaffold()
+
+    return prettier.format(
+      hasEvents && this.indexEvents
+        ? generateEventIndexingHandlers(
+            events,
+            this.contractName,
+          )
+        : protocolMapping.generateSoulboundHandlers({
+            ...this,
+            events,
+          }),
+      { parser: 'typescript', semi: false },
+    )
+  }
+
   generateABIs() {
     return this.protocol.hasABIs()
       ? {
@@ -136,6 +191,8 @@ dataSources:
       : undefined
   }
 
+  // NOTE: this function is called to generate the scaffolding for the contract.
+  // NOTE: HOWEVER THIS FUNCTION IS NOT USED IN THE SOULBOUND CLI
   generate() {
     return {
       'package.json': this.generatePackageJson(),
@@ -143,6 +200,20 @@ dataSources:
       'schema.graphql': this.generateSchema(),
       'tsconfig.json': this.generateTsConfig(),
       src: { 'mapping.ts': this.generateMapping() },
+      abis: this.generateABIs(),
+    }
+  }
+  // TODO:
+  // DONE overwrite the schema creation
+  // DONE overwrite the mapping creation
+  // DONE overwrite the yaml creation
+  generateBase() {
+    return {
+      'package.json': this.generatePackageJson(),
+      'subgraph.yaml': this.generateSoulboundManifest(),
+      'schema.graphql': this.generateSoulboundSchema(),
+      'tsconfig.json': this.generateTsConfig(),
+      src: { 'mapping.ts': this.generateSoulboundMapping() },
       abis: this.generateABIs(),
     }
   }
